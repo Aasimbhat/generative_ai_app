@@ -8,11 +8,41 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MyAppWrapper());
 }
 
+// Add this new wrapper class to manage theme state
+class MyAppWrapper extends StatefulWidget {
+  const MyAppWrapper({super.key});
+
+  @override
+  State<MyAppWrapper> createState() => _MyAppWrapperState();
+}
+
+class _MyAppWrapperState extends State<MyAppWrapper> {
+  bool isDarkMode = false;
+
+  void toggleTheme() {
+    print("Toggle theme called, current: $isDarkMode");
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+    print("New theme state: $isDarkMode");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Don't return MyApp directly - create an instance with proper parameters
+    return MyApp(isDarkMode: isDarkMode, toggleTheme: toggleTheme);
+  }
+}
+
+// Update MyApp to accept parameters
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isDarkMode;
+  final VoidCallback toggleTheme;
+
+  const MyApp({super.key, required this.isDarkMode, required this.toggleTheme});
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +67,17 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF10101D),
       ),
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      home: const NebulaPromptScreen(),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light, // Change here
+      home: NebulaPromptScreen(toggleTheme: toggleTheme), // Pass toggleTheme
     );
   }
 }
 
+// Update NebulaPromptScreen to accept toggleTheme
 class NebulaPromptScreen extends StatefulWidget {
-  const NebulaPromptScreen({super.key});
+  final VoidCallback toggleTheme;
+
+  const NebulaPromptScreen({super.key, required this.toggleTheme});
 
   @override
   State<NebulaPromptScreen> createState() => _NebulaPromptScreenState();
@@ -60,7 +93,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeInAnimation;
   final _scrollController = ScrollController();
-  bool _isDarkMode = false;
 
   @override
   void initState() {
@@ -102,12 +134,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
           curve: Curves.easeOut,
         );
       }
-    });
-  }
-
-  void _toggleTheme() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
     });
   }
 
@@ -286,12 +312,13 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
                 ),
                 IconButton(
                   icon: Icon(
-                    _isDarkMode
+                    isDarkMode
                         ? Icons.light_mode
                         : Icons.dark_mode, // Toggle icon
                     color: textColor.withOpacity(0.7),
                   ),
-                  onPressed: _toggleTheme, // Toggle theme on press
+                  onPressed:
+                      widget.toggleTheme, // Use the passed toggleTheme function
                 ),
               ],
             ),
@@ -813,7 +840,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
       ),
     );
   }
-
 
   Widget _buildLoadingIndicator(Color primaryColor, Color secondaryColor) {
     return Container(
