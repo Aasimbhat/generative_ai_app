@@ -84,7 +84,7 @@ class NebulaPromptScreen extends StatefulWidget {
 }
 
 class _NebulaPromptScreenState extends State<NebulaPromptScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   final _aiService = AIService();
   final _promptController = TextEditingController();
   String _response = '';
@@ -92,7 +92,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
   bool _hasResponse = false;
   late AnimationController _animationController;
   late Animation<double> _fadeInAnimation;
-  late AnimationController _orbitAnimationController;
   final _scrollController = ScrollController();
 
   @override
@@ -105,14 +104,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
     _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-
-    // Add this new controller for continuous animation
-    _orbitAnimationController = AnimationController(
-      duration: const Duration(
-        seconds: 20,
-      ), // Long duration for smooth animation
-      vsync: this,
-    )..repeat(); // This makes it run continuously
   }
 
   Future<void> _generateContent() async {
@@ -372,16 +363,16 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
               ),
             ),
 
-            // Double ring effect - replace TweenAnimationBuilder with AnimatedBuilder
-            AnimatedBuilder(
-              animation: _orbitAnimationController,
-              builder: (context, child) {
-                final value = _orbitAnimationController.value;
+            // Double ring effect
+            TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0, end: 1),
+              duration: const Duration(seconds: 20),
+              builder: (context, value, child) {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
                     Transform.rotate(
-                      angle: value * 2 * pi, // Use pi from dart:math
+                      angle: value * 2 * 3.14,
                       child: Container(
                         width: 160,
                         height: 160,
@@ -398,13 +389,13 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
                               primaryColor.withOpacity(0.1),
                             ],
                             stops: const [0.0, 0.5, 1.0],
-                            transform: const GradientRotation(pi / 4),
+                            transform: const GradientRotation(3.14 / 4),
                           ),
                         ),
                       ),
                     ),
                     Transform.rotate(
-                      angle: -value * 2 * pi,
+                      angle: -value * 2 * 3.14,
                       child: Container(
                         width: 200,
                         height: 200,
@@ -422,19 +413,19 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
               },
             ),
 
-            // Particles effect - also use AnimatedBuilder here
+            // Particles effect
             for (int i = 0; i < 10; i++)
-              AnimatedBuilder(
-                animation: _orbitAnimationController,
-                builder: (context, child) {
-                  final value = _orbitAnimationController.value;
+              TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0, end: 1),
+                duration: Duration(seconds: 2 + i),
+                builder: (context, value, child) {
                   final size = 4.0 + (i % 3) * 2.0;
-                  final angle = (i * 36) * (pi / 180);
-                  final radius = 80.0 + (sin(value * 2 * pi) * 20);
+                  final angle = (i * 36) * (3.14 / 180);
+                  final radius = 80.0 + (sin(value * 2 * 3.14) * 20);
 
                   return Positioned(
-                    left: 100 + radius * cos(angle + (value * 2 * pi)),
-                    top: 110 + radius * sin(angle + (value * 2 * pi)),
+                    left: 100 + radius * cos(angle + (value * 2 * 3.14)),
+                    top: 110 + radius * sin(angle + (value * 2 * 3.14)),
                     child: Container(
                       width: size,
                       height: size,
@@ -909,7 +900,6 @@ class _NebulaPromptScreenState extends State<NebulaPromptScreen>
   void dispose() {
     _promptController.dispose();
     _animationController.dispose();
-    _orbitAnimationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
